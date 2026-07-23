@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "custom": {
+      "command": "python",
+      "args": [
+        "-m",
+        "litellm",
+        "--model",
+        "openai/gpt-4o-mini"
+      ],
+      "env": {
+        "LITELLM_LOG_LEVEL": "ERROR",
+        "LITELLM_DISABLE_RETRIES": "true",
+        "LITELLM_MAX_RETRIES": "0",
+        "OPENROUTER_API_KEY": "${env:OPENROUTER_API_KEY}"
+      }
+    }
+  }
+}
+

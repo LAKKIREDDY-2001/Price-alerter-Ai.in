@@ -1,0 +1,406 @@
+// Content Script for AI Price Tracker Extension
+// Extracts product information from various shopping websites
+
+(function() {
+    'use strict';
+    
+    // Listen for messages from popup/background
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === 'getProductInfo') {
+            const productInfo = extractProductInfo();
+            sendResponse({ success: true, data: productInfo });
+        } else if (request.action === 'createTracker') {
+            const productInfo = extractProductInfo();
+            sendResponse({ success: true, data: productInfo });
+        }
+        return true;
+    });
+    
+    // Listen for price check requests from background
+    chrome.runtime.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === 'checkPrice') {
+            const price = extractCurrentPrice();
+            sendResponse({ success: true, price });
+        }
+        return true;
+    });
+    
+    // Function to extract product information
+    function extractProductInfo() {
+        const site = detectSite();
+        const extractors = {
+            amazon: extractAmazonProduct,
+            flipkart: extractFlipkartProduct,
+            myntra: extractMyntraProduct,
+            ajio: extractAjioProduct,
+            meesho: extractMeeshoProduct,
+            snapdeal: extractSnapdealProduct,
+            tatacliq: extractTataCliqProduct,
+            ebay: extractEbayProduct
+        };
+        
+        const extractor = extractors[site] || extractGenericProduct;
+        return extractor();
+    }
+    
+    function detectSite() {
+        const url = window.location.href.toLowerCase();
+        
+        if (url.includes('amazon')) return 'amazon';
+        if (url.includes('flipkart')) return 'flipkart';
+        if (url.includes('myntra')) return 'myntra';
+        if (url.includes('ajio')) return 'ajio';
+        if (url.includes('meesho')) return 'meesho';
+        if (url.includes('snapdeal')) return 'snapdeal';
+        if (url.includes('tatacliq')) return 'tatacliq';
+        if (url.includes('ebay')) return 'ebay';
+        
+        return 'generic';
+    }
+    
+    // Amazon India / International
+    function extractAmazonProduct() {
+        const selectors = {
+            name: [
+                '#productTitle',
+                '#title',
+                '.product-title',
+                'h1 span.a-size-extra-large'
+            ],
+            price: [
+                '.a-price .a-offscreen',
+                '#priceblock_ourprice',
+                '#priceblock_dealprice',
+                '.a-price-whole',
+                '.apexPriceToPay .a-offscreen'
+            ]
+        };
+        
+        return extractGeneric(selectors, 'INR', '₹');
+    }
+    
+    // Flipkart
+    function extractFlipkartProduct() {
+        const selectors = {
+            name: [
+                'h1 span.BFSOmU',
+                '.yhB1nd',
+                '.G6XhRU',
+                'h1[itemprop="name"]'
+            ],
+            price: [
+                'div[style*="flex-direction: column"] .Nx9bqj',
+                '._16Jk6d',
+                '.CEmiEe',
+                '.30JEfq'
+            ]
+        };
+        
+        return extractGeneric(selectors, 'INR', '₹');
+    }
+    
+    // Myntra
+    function extractMyntraProduct() {
+        const selectors = {
+            name: [
+                'h1.pdp-title',
+                '.pdp-name',
+                'h1[itemprop="name"]'
+            ],
+            price: [
+                '.pdp-price strong',
+                '.product-price',
+                '.discounted-price'
+            ]
+        };
+        
+        return extractGeneric(selectors, 'INR', '₹');
+    }
+    
+    // Ajio
+    function extractAjioProduct() {
+        const selectors = {
+            name: [
+                '.prod-name',
+                'h1[itemprop="name"]',
+                '.product-title'
+            ],
+            price: [
+                '.prod-sp',
+                '.price-details .discounted',
+                '.prod-price'
+            ]
+        };
+        
+        return extractGeneric(selectors, 'INR', '₹');
+    }
+    
+    // Meesho
+    function extractMeeshoProduct() {
+        const selectors = {
+            name: [
+                '.ProductCard__ProductName',
+                '.sc-iBkjds',
+                'h2[data-cy="product-card-title"]'
+            ],
+            price: [
+                '.ProductCard__Price',
+                '.sc-iBkjds .kKwZGO',
+                '.lmlZvt'
+            ]
+        };
+        
+        return extractGeneric(selectors, 'INR', '₹');
+    }
+    
+    // Snapdeal
+    function extractSnapdealProduct() {
+        const selectors = {
+            name: [
+                '.pdp-e-i-head',
+                'h1[itemprop="name"]',
+                '.product-title'
+            ],
+            price: [
+                '.payBlkBig',
+                '.product-price',
+                '.offer-price'
+            ]
+        };
+        
+        return extractGeneric(selectors, 'INR', '₹');
+    }
+    
+    // Tata CliQ
+    function extractTataCliqProduct() {
+        const selectors = {
+            name: [
+                '.ProductDetails__Title',
+                'h1[itemprop="name"]',
+                '.pdp-title'
+            ],
+            price: [
+                '.ProductDetails__Price',
+                '.price-info .final-price',
+                '.special-price'
+            ]
+        };
+        
+        return extractGeneric(selectors, 'INR', '₹');
+    }
+    
+    // eBay
+    function extractEbayProduct() {
+        const selectors = {
+            name: [
+                '.x-item-title__mainTitle',
+                'h1.it-ttl',
+                '[itemprop="name"]'
+            ],
+            price: [
+                '.x-price-primary',
+                '#prcIsum',
+                '.vi-price'
+            ]
+        };
+        
+        // Detect currency from page
+        let currency = 'USD';
+        let symbol = '$';
+        const priceText = document.querySelector(selectors.price[0])?.textContent || '';
+        
+        if (priceText.includes('₹') || priceText.includes('Rs')) {
+            currency = 'INR';
+            symbol = '₹';
+        } else if (priceText.includes('£')) {
+            currency = 'GBP';
+            symbol = '£';
+        } else if (priceText.includes('€')) {
+            currency = 'EUR';
+            symbol = '€';
+        }
+        
+        return extractGeneric(selectors, currency, symbol);
+    }
+    
+    // Generic extractor fallback
+    function extractGenericProduct() {
+        const selectors = {
+            name: [
+                'h1',
+                '[itemprop="name"]',
+                '.product-title',
+                '.product-name',
+                '.title'
+            ],
+            price: [
+                '.price',
+                '.product-price',
+                '.current-price',
+                '[itemprop="price"]',
+                '.amount',
+                '.value'
+            ]
+        };
+        
+        return extractGeneric(selectors, 'INR', '₹');
+    }
+    
+    // Helper function to extract values using multiple selectors
+    function extractGeneric(selectors, defaultCurrency, defaultSymbol) {
+        let name = '';
+        let price = 0;
+        let currency = defaultCurrency;
+        let symbol = defaultSymbol;
+        
+        // Extract name
+        for (const selector of selectors.name) {
+            const element = document.querySelector(selector);
+            if (element) {
+                name = element.textContent.trim();
+                if (name && name.length > 3) break;
+            }
+        }
+        
+        // Extract price
+        for (const selector of selectors.price) {
+            const element = document.querySelector(selector);
+            if (element) {
+                const priceText = element.textContent.trim();
+                const extractedPrice = parsePrice(priceText);
+                if (extractedPrice > 0) {
+                    price = extractedPrice;
+                    currency = detectCurrency(priceText, defaultCurrency);
+                    symbol = getCurrencySymbol(currency);
+                    break;
+                }
+            }
+        }
+        
+        return {
+            name: cleanName(name),
+            price,
+            currency,
+            symbol,
+            url: window.location.href,
+            site: detectSite()
+        };
+    }
+    
+    // Parse price from text
+    function parsePrice(text) {
+        // Remove currency symbols and get numeric value
+        const cleaned = text.replace(/[^0-9.]/g, '');
+        const price = parseFloat(cleaned);
+        return isNaN(price) ? 0 : price;
+    }
+    
+    // Detect currency from price text
+    function detectCurrency(text, defaultCurrency) {
+        const upperText = text.toUpperCase();
+        
+        if (upperText.includes('₹') || upperText.includes('RS') || upperText.includes('INR')) {
+            return 'INR';
+        } else if (upperText.includes('$') && !upperText.includes('USD')) {
+            return 'USD';
+        } else if (upperText.includes('£')) {
+            return 'GBP';
+        } else if (upperText.includes('€')) {
+            return 'EUR';
+        } else if (upperText.includes('¥')) {
+            return 'JPY';
+        }
+        
+        return defaultCurrency;
+    }
+    
+    // Get currency symbol
+    function getCurrencySymbol(currency) {
+        const symbols = {
+            'INR': '₹',
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥',
+            'CAD': '$',
+            'AUD': '$'
+        };
+        return symbols[currency] || currency;
+    }
+    
+    // Clean product name
+    function cleanName(name) {
+        // Remove extra whitespace and special characters
+        return name
+            .replace(/\s+/g, ' ')
+            .trim()
+            .substring(0, 200); // Limit length
+    }
+    
+    // Extract current price for monitoring
+    function extractCurrentPrice() {
+        const productInfo = extractProductInfo();
+        return productInfo.price;
+    }
+    
+    // Inject floating action button on shopping sites
+    function injectFAB() {
+        // Only inject on supported sites
+        const site = detectSite();
+        if (site === 'generic') return;
+        
+        // Check if already injected
+        if (document.getElementById('ai-price-tracker-fab')) return;
+        
+        const fab = document.createElement('div');
+        fab.id = 'ai-price-tracker-fab';
+        fab.innerHTML = '<i class="fa fa-bell"></i> Track Price';
+        fab.addEventListener('click', () => {
+            chrome.runtime.sendMessage({ action: 'openPopup' });
+        });
+        
+        // Add styles
+        const style = document.createElement('style');
+        style.textContent = `
+            #ai-price-tracker-fab {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #ff9f0a 0%, #ff7b00 100%);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 30px;
+                font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(255, 159, 10, 0.4);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.3s ease;
+            }
+            #ai-price-tracker-fab:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(255, 159, 10, 0.5);
+            }
+            #ai-price-tracker-fab i {
+                font-size: 16px;
+            }
+        `;
+        
+        document.head.appendChild(style);
+        document.body.appendChild(fab);
+    }
+    
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(injectFAB, 1000);
+        });
+    } else {
+        setTimeout(injectFAB, 1000);
+    }
+    
+})();

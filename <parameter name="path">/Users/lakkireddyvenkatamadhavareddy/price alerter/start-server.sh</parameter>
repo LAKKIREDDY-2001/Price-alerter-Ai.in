@@ -1,0 +1,51 @@
+<parameter name="content">#!/bin/bash
+cd /Users/lakkireddyvenkatamadhavareddy/price\ alerter
+
+echo "Starting Flask server..."
+python3 app.py > flask.log 2>&1 &
+FLASK_PID=$!
+echo "Flask PID: $FLASK_PID"
+
+# Wait for Flask to start
+sleep 3
+
+# Check if Flask is running
+if ps -p $FLASK_PID > /dev/null; then
+    echo "Flask server started successfully!"
+    echo "Starting ngrok..."
+    
+    # Start ngrok in background
+    ngrok http 8081 > ngrok.log 2>&1 &
+    NGROK_PID=$!
+    echo "Ngrok PID: $NGROK_PID"
+    
+    # Wait for ngrok to initialize
+    sleep 5
+    
+    # Extract ngrok URL
+    if command -v curl &> /dev/null; then
+        NGROK_URL=$(curl -s http://127.0.0.1:4040/api/tunnels | python3 -c "import sys, json; print(json.load(sys.stdin)['tunnels'][0]['public_url'])" 2>/dev/null)
+        if [ -n "$NGROK_URL" ]; then
+            echo ""
+            echo "=========================================="
+            echo "✅ SUCCESS! Your app is now accessible at:"
+            echo ""
+            echo "   $NGROK_URL"
+            echo ""
+            echo "=========================================="
+            echo ""
+            echo "Local URL: http://127.0.0.1:8081"
+        else
+            echo "Ngrok started but URL not yet available. Check ngrok.log"
+        fi
+    else
+        echo "Ngrok started. Check ngrok.log for the URL"
+    fi
+    
+    echo ""
+    echo "To stop the server:"
+    echo "  kill $FLASK_PID $NGROK_PID"
+else
+    echo "ERROR: Flask server failed to start. Check flask.log"
+fi
+</parameter>

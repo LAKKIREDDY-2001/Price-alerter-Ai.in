@@ -1,0 +1,31 @@
+model_list:
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENROUTER_API_KEY
+      base_url: https://openrouter.ai/api/v1
+    model_info:
+      mode_group: openrouter/openai
+
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENROUTER_API_KEY
+      base_url: https://openrouter.ai/api/v1
+    model_info:
+      mode_group: openrouter/openai
+
+litellm_settings:
+  cache_params: False
+  drop_params: True
+  add_params: {}
+  disable_retries: true
+  max_retries: 0
+  # Critical: Disable problematic models
+  excluded_models:
+    - "openrouter/minimax-m2"
+    - "minimax/*"
+
+general_settings:
+  master_key: os.environ/LITELLM_LICENSE_KEY
+

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Price Tracker</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="popup-container">
+        <!-- Header -->
+        <header class="popup-header">
+            <div class="logo">
+                <i class="fa fa-bell"></i>
+                <span>AI Price Tracker</span>
+            </div>
+            <button id="settings-btn" class="icon-btn" title="Settings">
+                <i class="fa fa-cog"></i>
+            </button>
+        </header>
+
+        <!-- Not Logged In State -->
+        <div id="not-logged-in" class="state-view hidden">
+            <div class="empty-state">
+                <i class="fa fa-user-circle"></i>
+                <h3>Sign In Required</h3>
+                <p>Sign in to sync your trackers across devices</p>
+                <button id="sign-in-btn" class="primary-btn">
+                    <i class="fa fa-sign-in"></i> Sign In
+                </button>
+                <a href="https://aipricealert.com/login" target="_blank" class="link">Create an account</a>
+            </div>
+        </div>
+
+        <!-- Tracker List State -->
+        <div id="tracker-list" class="state-view">
+            <div class="stats-bar">
+                <div class="stat">
+                    <span class="stat-value" id="active-count">0</span>
+                    <span class="stat-label">Active</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="deals-count">0</span>
+                    <span class="stat-label">Deals</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="savings-percent">0%</span>
+                    <span class="stat-label">Avg Savings</span>
+                </div>
+            </div>
+
+            <!-- Affiliate Section -->
+            <div id="affiliate-section" class="affiliate-section">
+                <div class="affiliate-header">
+                    <i class="fa fa-tags"></i>
+                    <span>Save More</span>
+                </div>
+                <div class="affiliate-links">
+                    <a href="#" id="affiliate-amazon" class="affiliate-btn" target="_blank">
+                        <i class="fa fa-amazon"></i>
+                        <span>Amazon</span>
+                    </a>
+                    <a href="#" id="affiliate-flipkart" class="affiliate-btn" target="_blank">
+                        <i class="fa fa-shopping-cart"></i>
+                        <span>Flipkart</span>
+                    </a>
+                    <a href="#" id="affiliate-myntra" class="affiliate-btn" target="_blank">
+                        <i class="fa fa-tag"></i>
+                        <span>Myntra</span>
+                    </a>
+                </div>
+                <p class="affiliate-disclaimer">Earn rewards when you shop through these links</p>
+            </div>
+
+            <div id="trackers-container" class="trackers-list">
+                <!-- Trackers will be rendered here -->
+            </div>
+
+            <div id="no-trackers" class="empty-state small">
+                <i class="fa fa-rocket"></i>
+                <p>No trackers yet</p>
+                <button id="add-first-btn" class="primary-btn">
+                    <i class="fa fa-plus"></i> Add Tracker
+                </button>
+            </div>
+        </div>
+
+        <!-- Add Tracker State -->
+        <div id="add-tracker" class="state-view hidden">
+            <div class="form-header">
+                <button id="back-btn" class="icon-btn">
+                    <i class="fa fa-arrow-left"></i>
+                </button>
+                <h3>Add Tracker</h3>
+            </div>
+
+            <div class="current-product" id="current-product">
+                <!-- Current product info from content script -->
+            </div>
+
+            <form id="add-tracker-form">
+                <div class="form-group">
+                    <label>Product URL</label>
+                    <input type="url" id="product-url" placeholder="Paste product URL..." required>
+                </div>
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="product-name" placeholder="Product name..." required>
+                </div>
+                <div class="form-group">
+                    <label>Current Price</label>
+                    <div class="price-input-group">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="current-price" step="0.01" placeholder="0.00" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Target Price</label>
+                    <div class="price-input-group">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="target-price" step="0.01" placeholder="Set target..." required>
+                    </div>
+                </div>
+                <div class="quick-targets">
+                    <button type="button" class="quick-btn" data-percent="10">-10%</button>
+                    <button type="button" class="quick-btn" data-percent="15">-15%</button>
+                    <button type="button" class="quick-btn" data-percent="20">-20%</button>
+                    <button type="button" class="quick-btn" data-percent="25">-25%</button>
+                </div>
+                <button type="submit" class="primary-btn full-width">
+                    <i class="fa fa-bell"></i> Start Tracking
+                </button>
+            </form>
+        </div>
+
+        <!-- Settings State -->
+        <div id="settings-view" class="state-view hidden">
+            <div class="form-header">
+                <button id="settings-back-btn" class="icon-btn">
+                    <i class="fa fa-arrow-left"></i>
+                </button>
+                <h3>Settings</h3>
+            </div>
+
+            <div class="settings-list">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label>Push Notifications</label>
+                        <p>Get browser notifications</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="push-notifications">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label>Dark Mode</label>
+                        <p>Dark theme</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="dark-mode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <label>Sound Alerts</label>
+                        <p>Play sound on price drop</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="sound-alerts">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="account-section">
+                <h4>Account</h4>
+                <div id="user-info" class="user-info hidden">
+                    <i class="fa fa-user-circle"></i>
+                    <span id="user-email"></span>
+                </div>
+                <button id="sign-out-btn" class="secondary-btn full-width hidden">
+                    <i class="fa fa-sign-out"></i> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <i class="toast-icon"></i>
+            <span class="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
+

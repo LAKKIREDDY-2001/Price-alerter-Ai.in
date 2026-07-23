@@ -1,0 +1,63 @@
+{
+  "manifest_version": 3,
+  "name": "AI Price Tracker",
+  "version": "1.0.0",
+  "description": "Track prices on Amazon, Flipkart, Myntra and more. Get instant notifications when prices drop!",
+  "author": "AI Price Alert",
+  "homepage_url": "https://aipricealert.com",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "AI Price Tracker"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.in/*",
+        "*://*.amazon.com/*",
+        "*://*.flipkart.com/*",
+        "*://*.myntra.com/*",
+        "*://*.ajio.com/*",
+        "*://*.meesho.com/*",
+        "*://*.snapdeal.com/*",
+        "*://*.tatacliq.com/*",
+        "*://*.ebay.in/*",
+        "*://*.ebay.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "notifications",
+    "activeTab",
+    "tabs",
+    "contextMenus",
+    "alarms"
+  ],
+  "host_permissions": [
+    "*://aipricealert.com/*",
+    "https://api.telegram.org/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+

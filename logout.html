@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logging Out - AI Price Alert</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Unbounded:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔔</text></svg>">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #0f0c1b;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden;
+            margin: 0;
+        }
+        .logout-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        .spinner {
+            font-size: 48px;
+            color: #ff9f0a;
+            margin-bottom: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #fff 30%, #a5a1b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p {
+            color: #86868b;
+            margin: 0;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+        <i class="fa fa-spinner spinner"></i>
+        <h2>Logging Out</h2>
+        <p>Clearing secure session...</p>
+    </div>
+
+    <!-- Scripts to trigger sign out dynamically -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="/static/firebase-init.js"></script>
+    <script src="/static/firebase-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Perform logout operations
+            try {
+                if (window.firebaseAuth && typeof window.firebaseAuth.signOut === 'function') {
+                    await window.firebaseAuth.signOut();
+                }
+            } catch (err) {
+                console.error("SignOut error:", err);
+            }
+            
+            // Clear any local storage/cookies
+            localStorage.removeItem('user_id');
+            sessionStorage.clear();
+            
+            // Redirect back to login
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

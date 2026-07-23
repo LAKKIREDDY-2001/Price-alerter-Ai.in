@@ -1,0 +1,20 @@
+{
+  "name": "price-alerter",
+  "version": "1.0.0",
+  "description": "The project is now set up with a separate HTML, CSS, and JavaScript file.",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:firebase": "esbuild firebase-entry.js --bundle --outfile=static/firebase-bundle.js --format=iife --global-name=firebase --platform=browser"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "firebase": "^12.7.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.2"
+  }
+}
