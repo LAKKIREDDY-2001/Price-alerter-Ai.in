@@ -5,7 +5,8 @@
   "main": "script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:firebase": "esbuild firebase-entry.js --bundle --outfile=static/firebase-bundle.js --format=iife --global-name=firebase --platform=browser"
+    "build:firebase": "esbuild firebase-entry.js --bundle --outfile=static/firebase-bundle.js --format=iife --global-name=firebase --platform=browser",
+    "build": "python3 compile_static_site.py || echo 'Python compilation skipped'"
   },
   "keywords": [],
   "author": "",
